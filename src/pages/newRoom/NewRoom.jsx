@@ -1,48 +1,11 @@
-import "./new.scss";
+import "./NewRoom.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
-import axios from "axios";
 
-const New = ({ inputs, title }) => {
+const NewRoom = ({ inputs, title }) => {
   const [file, setFile] = useState("");
-
-  const [info,setInfo] = useState({});
-  const handleChange = e =>{
-    setInfo(prev=> ({...prev,[e.target.id]: e.target.value}))
-  }
-
-  const handleClick = async (e) => {
-
-    // cau hinh cloundinary de luu tru hinh anh 
-    const CLOUD_NAME = 'dczfad4x6';
-    const API_KEY = '638815743715775';
-    const API_SECRET = '2ZCjTDWM3qTskMDwKSBMTtIpOhg';
-    e.preventDefault();
-    const data = new FormData(); // tao form data
-    data.append("file", file); // truyen file hinh anh 
-    data.append("upload_preset", "upload");
-    data.append('api_key', API_KEY)
-    try {
-      const uploadRes = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, // clound luu tru image
-        data
-      );
-
-      const { url } = uploadRes.data; 
-
-      const newUser = {
-        ...info,
-        img: url,
-      };
-
-      await axios.post("/auth/register", newUser);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
 
   return (
     <div className="new">
@@ -77,15 +40,13 @@ const New = ({ inputs, title }) => {
                 />
               </div>
 
-              
               {inputs.map((input) => (
                 <div className="formInput" key={input.id}>
                   <label>{input.label}</label>
-                  <input onChange={handleChange} id={input.id}/**id luu trong form souurce la ten */ type={input.type} placeholder={input.placeholder} />
+                  <input type={input.type} placeholder={input.placeholder} />
                 </div>
               ))}
-              
-              <button onClick={handleClick}>Send</button>
+              <button>Send</button>
             </form>
           </div>
         </div>
@@ -93,4 +54,5 @@ const New = ({ inputs, title }) => {
     </div>
   );
 };
-export default New;
+
+export default NewRoom;
