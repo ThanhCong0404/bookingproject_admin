@@ -4,13 +4,60 @@ import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import { hotelInputs } from "../../formSource";
+import useFetch from "../../hooks/useFetch";
+import axios from "axios";
 
 const NewHotel = () => {
   const [files, setFiles] = useState("");
 
   const [info,setInfo] = useState({});
+  const [rooms,setRooms] = useState([]);
+  const {data,loading,error} = useFetch("/rooms");
+
   const handleChange = e =>{
     setInfo(prev=> ({...prev,[e.target.id]: e.target.value}))
+  }
+
+  const handleSelect = e => {
+    const value = Array.from(e.target.selectedOptions,(option) => option.value); //list id rooms select
+    setRooms(value);
+  }
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    try {
+      // cau hinh cloundinary de luu tru hinh anh 
+      const CLOUD_NAME = 'dczfad4x6';
+      const API_KEY = '638815743715775';
+      const API_SECRET = '2ZCjTDWM3qTskMDwKSBMTtIpOhg';
+      
+      const list = await Promise.all( /*convert object files to array*/ Object.values(files).map( async (file)=>{        
+        e.preventDefault();
+        const data = new FormData(); // tao form data
+        data.append("file", file); // truyen file hinh anh 
+        data.append("upload_preset", "upload");
+        data.append('api_key', API_KEY)
+
+        const uploadRes = await axios.post(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, // clound luu tru image
+          data
+        );
+  
+        const { url } = uploadRes.data; 
+        return url;
+
+      }))
+
+      const newHotel = {
+        ...info,
+        rooms,
+        photos: list
+      }
+
+      await axios.post("/hotels",newHotel);
+    } catch (error) {
+      
+    }
   }
 
   return (
@@ -53,7 +100,27 @@ const NewHotel = () => {
                   <input id={input.id} onChange={handleChange} type={input.type} placeholder={input.placeholder} />
                 </div>
               ))}
-              <button>Send</button>
+
+              <div className="formInput">
+                <label>Đặc sắc</label>
+                <select id="featured" onChange={handleChange}>
+                  <option value={false} > NO </option>
+                  <option value={true} > YES </option>
+
+                </select>
+              </div>
+
+              <div className="selectRooms">
+                <label>Phòng</label>
+                <select id="rooms" multiple onChange={handleSelect}>
+                  {loading ? "loading... " : data && data.map(room => (
+                    <option value={room._id}  key={room._id}> {room.title} </option>
+                  ))}
+
+                </select>
+              </div>
+
+              <button onClick={handleClick}>Send</button>
             </form>
           </div>
         </div>
